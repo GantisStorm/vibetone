@@ -499,9 +499,39 @@ impl eframe::App for VibetoneApp {
     }
 }
 
+fn load_icon() -> egui::IconData {
+    let png = include_bytes!("../assets/icon.png");
+    let mut img = image::load_from_memory(png).expect("icon.png").to_rgba8();
+    let (w, h) = img.dimensions();
+
+    // Apply macOS-style squircle mask so the dock icon has rounded corners.
+    let cx = w as f64 / 2.0;
+    let cy = h as f64 / 2.0;
+    let r = cx; // half-width = radius
+    let exp = 4.0; // superellipse exponent (squircle)
+    for y in 0..h {
+        for x in 0..w {
+            let dx = ((x as f64 - cx) / r).abs();
+            let dy = ((y as f64 - cy) / r).abs();
+            let d = dx.powf(exp) + dy.powf(exp);
+            let alpha = if d > 1.0 { 0u8 } else { 255 };
+            img.get_pixel_mut(x, y).0[3] =
+                (img.get_pixel(x, y).0[3] as u16 * alpha as u16 / 255) as u8;
+        }
+    }
+
+    egui::IconData {
+        rgba: img.into_raw(),
+        width: w,
+        height: h,
+    }
+}
+
 pub fn run() -> Result<()> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([420.0, 440.0]),
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([420.0, 440.0])
+            .with_icon(load_icon()),
         ..Default::default()
     };
     eframe::run_native(

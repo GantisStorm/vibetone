@@ -3145,6 +3145,7 @@ dependencies = [
  "audio-gate",
  "cpal",
  "eframe",
+ "image",
  "ringbuf",
 ]
 
