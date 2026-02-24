@@ -1,0 +1,15 @@
+[package]
+name = "vibetone"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpal = "0.17"
+ringbuf = "0.4"
+anyhow = "1"
+eframe = "0.33"
+audio-gate = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = true
