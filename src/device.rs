@@ -82,6 +82,26 @@ pub fn supported_buffer_sizes(
     }
 }
 
+/// Check whether the given buffer size and sample rate are supported by both devices.
+pub fn validate_config(
+    input: &Device,
+    output: &Device,
+    buffer_size: u32,
+    sample_rate: u32,
+) -> Result<(), String> {
+    if supported_buffer_sizes(input, output, &[buffer_size]).is_empty() {
+        return Err(format!(
+            "Buffer size {buffer_size} not supported by selected devices"
+        ));
+    }
+    if supported_sample_rates(input, output, &[sample_rate]).is_empty() {
+        return Err(format!(
+            "Sample rate {sample_rate} Hz not supported by selected devices"
+        ));
+    }
+    Ok(())
+}
+
 /// Return the subset of `candidates` that both devices support as sample rates.
 pub fn supported_sample_rates(
     input: &Device,

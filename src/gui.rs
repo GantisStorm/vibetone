@@ -98,8 +98,7 @@ struct VibetoneApp {
     volume: f32,
     noise_gate: bool,
     noise_gate_threshold: f32,
-    available_buffer_sizes: Vec<u32>,
-    available_sample_rates: Vec<u32>,
+    config_warning: Option<String>,
     voice_filter: bool,
     engine: Option<AudioEngine>,
     params_handle: Option<Arc<AudioParams>>,
@@ -122,42 +121,17 @@ impl VibetoneApp {
             .map(|(_, name, device)| DeviceEntry { name, device })
             .collect();
 
-        let (available_buffer_sizes, available_sample_rates) =
-            if !inputs.is_empty() && !outputs.is_empty() {
-                let inp = &inputs[0].device;
-                let out = &outputs[0].device;
-                (
-                    device::supported_buffer_sizes(inp, out, ALL_BUFFER_SIZES),
-                    device::supported_sample_rates(inp, out, ALL_SAMPLE_RATES),
-                )
-            } else {
-                (ALL_BUFFER_SIZES.to_vec(), ALL_SAMPLE_RATES.to_vec())
-            };
-
-        let buffer_size = if available_buffer_sizes.contains(&64) {
-            64
-        } else {
-            available_buffer_sizes.first().copied().unwrap_or(64)
-        };
-
-        let sample_rate = if available_sample_rates.contains(&48000) {
-            48000
-        } else {
-            available_sample_rates.first().copied().unwrap_or(48000)
-        };
-
         Self {
             inputs,
             outputs,
             selected_input: 0,
             selected_output: 0,
-            buffer_size,
-            sample_rate,
+            buffer_size: 64,
+            sample_rate: 48000,
             volume: 1.0,
             noise_gate: false,
             noise_gate_threshold: -36.0,
-            available_buffer_sizes,
-            available_sample_rates,
+            config_warning: None,
             voice_filter: true,
             engine: None,
             params_handle: None,
@@ -169,26 +143,6 @@ impl VibetoneApp {
 
     fn is_running(&self) -> bool {
         self.engine.is_some()
-    }
-
-    fn refresh_device_capabilities(&mut self) {
-        if self.inputs.is_empty() || self.outputs.is_empty() {
-            return;
-        }
-        let inp = &self.inputs[self.selected_input].device;
-        let out = &self.outputs[self.selected_output].device;
-
-        self.available_buffer_sizes =
-            device::supported_buffer_sizes(inp, out, ALL_BUFFER_SIZES);
-        if !self.available_buffer_sizes.contains(&self.buffer_size) {
-            self.buffer_size = self.available_buffer_sizes.first().copied().unwrap_or(64);
-        }
-
-        self.available_sample_rates =
-            device::supported_sample_rates(inp, out, ALL_SAMPLE_RATES);
-        if !self.available_sample_rates.contains(&self.sample_rate) {
-            self.sample_rate = self.available_sample_rates.first().copied().unwrap_or(48000);
-        }
     }
 
     fn start(&mut self) {
@@ -318,9 +272,6 @@ impl eframe::App for VibetoneApp {
             Self::section_label(ui, "ROUTING");
             ui.add_space(2.0);
 
-            let prev_input = self.selected_input;
-            let prev_output = self.selected_output;
-
             ui.add_enabled_ui(!running, |ui| {
                 egui::Grid::new("routing")
                     .num_columns(2)
@@ -370,7 +321,7 @@ impl eframe::App for VibetoneApp {
                         )
                         .width(70.0)
                         .show_ui(ui, |ui| {
-                            for &s in &self.available_buffer_sizes {
+                            for &s in ALL_BUFFER_SIZES {
                                 ui.selectable_value(&mut self.buffer_size, s, format!("{s}"));
                             }
                         });
@@ -383,7 +334,7 @@ impl eframe::App for VibetoneApp {
                         )
                         .width(90.0)
                         .show_ui(ui, |ui| {
-                            for &r in &self.available_sample_rates {
+                            for &r in ALL_SAMPLE_RATES {
                                 ui.selectable_value(&mut self.sample_rate, r, format!("{r} Hz"));
                             }
                         });
@@ -397,8 +348,26 @@ impl eframe::App for VibetoneApp {
                 });
             });
 
-            if self.selected_input != prev_input || self.selected_output != prev_output {
-                self.refresh_device_capabilities();
+            // Validate config against current devices
+            self.config_warning = if !self.inputs.is_empty() && !self.outputs.is_empty() {
+                device::validate_config(
+                    &self.inputs[self.selected_input].device,
+                    &self.outputs[self.selected_output].device,
+                    self.buffer_size,
+                    self.sample_rate,
+                )
+                .err()
+            } else {
+                None
+            };
+
+            if let Some(warning) = &self.config_warning {
+                ui.add_space(2.0);
+                ui.label(
+                    egui::RichText::new(warning.as_str())
+                        .color(egui::Color32::from_rgb(255, 200, 50))
+                        .size(10.0),
+                );
             }
 
             ui.add_space(4.0);
@@ -487,7 +456,9 @@ impl eframe::App for VibetoneApp {
                     .fill(btn_fill)
                     .stroke(btn_stroke);
 
-                let can_start = !self.inputs.is_empty() && !self.outputs.is_empty();
+                let can_start = !self.inputs.is_empty()
+                    && !self.outputs.is_empty()
+                    && self.config_warning.is_none();
                 let enabled = if running { true } else { can_start };
 
                 if ui.add_enabled(enabled, btn).clicked() {
