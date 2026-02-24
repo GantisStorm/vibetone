@@ -26,6 +26,9 @@ cd vibetone
 ./release.sh
 ```
 
+- **macOS** — installs `Vibetone.app` to `/Applications`. Open from Spotlight or Launchpad.
+- **Linux** — installs binary to `~/.local/bin` + adds app launcher entry.
+
 **Windows (PowerShell):**
 
 ```powershell
@@ -34,7 +37,7 @@ cd vibetone
 .\release.ps1
 ```
 
-Then run `vibetone` from anywhere.
+Installs to `%LOCALAPPDATA%\Vibetone` + adds Start Menu shortcut.
 
 ---
 
@@ -44,7 +47,7 @@ Then run `vibetone` from anywhere.
 ./dev.sh
 ```
 
-Builds debug and runs immediately.
+Builds debug and runs immediately. Pass args with `./dev.sh --help`.
 
 ---
 
