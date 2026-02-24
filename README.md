@@ -1,8 +1,8 @@
-```
-> vibetone_
-```
+<p align="center">
+  <img src="assets/icon.png" width="200" alt="vibetone" />
+</p>
 
-### hear yourself vibe
+<h3 align="center">hear yourself vibe</h3>
 
 ---
 
