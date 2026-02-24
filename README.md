@@ -1,14 +1,20 @@
-# Vibetone
+```
+> vibetone_
+```
 
-> hear yourself vibe
+### hear yourself vibe
 
-Real-time sidetone app for vibe coders. Hear your own voice through your headphones so you don't slur your words while you're in the zone.
+---
 
-## What it does
+Real-time sidetone for vibe coders. Routes your mic to your headphones so you don't slur your words while you're deep in the zone.
 
-Routes your microphone to your headphones with ultra-low latency (~1.3ms at default settings). Includes a noise gate to silence background noise between words and a voice filter that cleans up rumble and hiss.
+```
+~1.3ms latency  //  noise gate  //  voice filter  //  cyberpunk ui
+```
 
-## Install
+---
+
+### `> install_`
 
 Requires [Rust](https://rustup.rs/).
 
@@ -30,7 +36,9 @@ cd vibetone
 
 Then run `vibetone` from anywhere.
 
-## Dev
+---
+
+### `> dev_`
 
 ```bash
 ./dev.sh
@@ -38,11 +46,21 @@ Then run `vibetone` from anywhere.
 
 Builds debug and runs immediately.
 
-## Features
+---
 
-- Device selection (input/output)
-- Configurable buffer size and sample rate
-- Volume control
-- Noise gate with adjustable threshold
-- Voice filter (100Hz high-pass + 8kHz low-pass)
-- Cyberpunk UI
+### `> features_`
+
+```
+[x] device selection (input/output)
+[x] configurable buffer size + sample rate
+[x] volume control
+[x] noise gate w/ adjustable threshold
+[x] voice filter (100Hz HPF / 8kHz LPF)
+[x] cyberpunk terminal ui
+```
+
+---
+
+```
+built with rust  //  powered by cpal + egui  //  vibe coded with claude
+```
